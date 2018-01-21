@@ -1,0 +1,257 @@
+# Will's alias file for all SH-derived shells (SH, ASH, ZSH, BASH, etc.),
+# contains basic stuff for interactive and non-interactive shells
+
+# version 2018-01-21
+# - Changes to improve ASH compatibility. Todo: busybox
+
+################################################################################
+# Portability stuff                           should be before almost everything
+################################################################################
+
+# keep dirstack stuff where it is
+if type pushd > /dev/null 2>&1
+then
+  has_dirstack='1'
+else
+  has_dirstack='0'
+fi
+
+# Alias favorite programs that may be missing
+# vi/vim
+if ! type 'vim' > /dev/null 2>&1
+then
+  alias vim='vi'
+else
+  alias vi='vim'
+fi
+
+# pico -> vi(m) waterfall and force -w
+if ! type 'pi\co' > /dev/null 2>&1
+then
+  alias pico='vim'
+else
+  alias pico='pico -w'
+fi
+
+# nano -> pico -> vi(m) waterfall
+if ! type 'nano' > /dev/null 2>&1
+then
+  if type 'pi\co' > /dev/null 2>&1
+  then
+    alias nano='pi\co -w'
+  else
+    alias nano='vim'
+  fi
+fi
+
+# for scp compatibility in busybox environments
+if ! type 'groups' > /dev/null 2>&1
+then
+  alias groups='id -nG'
+fi
+
+# some du's don't have -h (human readable), but default to it if it's there
+if ! du -h /dev/console > /dev/null 2>&1
+then
+  alias du='du -h'
+fi
+
+################################################################################
+# Program overrides
+################################################################################
+# zgrep will search uncompressed and compressed files, default to regexes
+if type 'zgrep' > /dev/null 2>&1
+then
+  alias zgrep='zgrep -E'
+else
+  alias zgrep='grep -E'
+fi
+
+# Use htop if available, check for a local version
+if type 'htop_latest' > /dev/null 2>&1
+then
+  alias htop='htop_latest'
+  # leave top alone when both exist
+elif ! type 'htop' > /dev/null 2>&1
+then
+  alias htop='top'
+fi
+
+# screen, check for local version
+if type 'screen_latest' > /dev/null 2>&1
+then
+  alias screen='screen_latest -xR'
+  alias sscreen='unset STY; screen_latest'
+else
+  alias screen='screen -xR'
+  alias sscreen='unset STY; scre\en'
+fi
+
+################################################################################
+# one-letter wonders (except for the ls group)     depend on portability aliases
+################################################################################
+alias m='less'
+alias c='clear'
+alias f='find -iname'
+# Conditionals will alias htop, zgrep, nano, and vim later if they don't exist
+alias e='nano'
+alias v='vim'
+alias t='htop'
+alias g='zgrep'
+# Dir-stack is rarer
+if [[ $has_dirstack -eq 1 ]]
+then
+  alias p='popd'
+  alias d='dirs -v'
+fi
+
+################################################################################
+# ls commands                                  only depend on the first one here
+################################################################################
+alias ls='ls -AFh --color=auto'
+alias l1='l\s -1'
+alias la='ls -a'
+alias ll='ls -l'
+alias lr='ll -r'
+alias lt='ll -t'
+alias ltr='ll -tr'
+alias l='ll'
+
+################################################################################
+# misc aliases                                     depend on portability aliases
+################################################################################
+# tar
+alias tu='tar -cvzf'
+alias tx='tar -xvf'
+
+# force of habit
+alias what='type'
+alias cls='clear'
+
+if type 'gitk' > /dev/null 2>&1
+then
+  alias gci='git citool &'
+fi
+
+################################################################################
+# file/directory aliases and functions            independent (except functions)
+################################################################################
+alias rp='readlink -f'
+alias up='cd ..'
+alias up2='cd ../..'
+alias upp='cd ../..'
+alias up3='cd ../../..'
+alias uppp='cd ../../..'
+alias up4='cd ../../../..'
+alias upppp='cd ../../../..'
+alias up5='cd ../../../../..'
+alias uppppp='cd ../../../../..'
+alias mkdir='mkdir -p'
+alias md='mkdir -p'
+alias cp='cp -a'
+
+# replace pushd with cd if the chell doesn't implement directory stack
+# note: this is mostly for functions... I don't type pushd and expect cd to push
+if [[ $has_dirstack -eq 1 ]]
+then
+  # Tell pushd to shut the hell up
+  pushd () {
+    command pushd $* > /dev/null 2>&1
+  }
+else
+  # just alias it to cd
+  pushd () {
+    command cd
+  }
+fi
+
+# smart CD to the path containing a file if file given
+cd() {
+  if [[ -z $2 ]]
+  then
+    if [[ -f $1 ]]
+    then
+      pushd $1:h
+    else
+      pushd $1
+    fi
+  else
+    # multiple arguments overrides this and falls back to the regular cd
+    pushd $*
+  fi
+}
+
+# cd and/or less is simpler with smartcd
+# Note: cdl can be "odd" when the path is a link etc. since it needs to use
+#       readlink to get the full path. This could be made better by path-parsing,
+#       but I'm too lazy to figure out how to make that portable
+cdl () {
+  local file=`readlink -f $1`
+  cd $1
+  less $file
+}
+
+#mkcd=mkdir then CD (doesn't need smart CD since we just made the directory)
+mkcd () {
+  if [[ -z $2 ]]
+  then
+    mkdir $1
+    pushd cd $1
+  else
+    echo "ERROR: too many arguments"
+  fi
+}
+
+################################################################################
+# functionland
+################################################################################
+
+# smart background remove
+rmr () {
+  mkdir tombstone > /dev/null 2>&1
+  local tombstone=`readlink -f tombstone`
+  mv $* $tombstone/ > /dev/null 2>&1
+  for x in $*
+  do
+    rm -rf $tombstone/x
+  done
+  rmdir $tombstone > /dev/null 2>&1
+}
+
+# dua (du all): use a loop to prevent globbing errors on the pickier shells
+# finally, we want to avoid using du on certain dirs (most notably snapshots)
+dua () {
+  for x in .[!.]* ..?* *
+  do
+    if [[ -e $x && $x != ".snapshot/" ]]
+    then
+      du -sx $x
+    fi
+  done
+}
+
+# Add & to common guis
+if type 'gitk' > /dev/null 2>&1
+then
+  gitk () {
+    command gitk $* &
+  }
+fi
+if type 'kate' > /dev/null 2>&1
+then
+  kate () {
+    command kate $* &
+  }
+fi
+if type 'gedit' > /dev/null 2>&1
+then
+  gedit () {
+    command gedit $* &
+  }
+fi
+if type 'gvim' > /dev/null 2>&1
+then
+  gvim () {
+    command gvim $* &
+  }
+fi
