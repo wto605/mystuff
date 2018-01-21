@@ -175,9 +175,13 @@ cd() {
     else
       pushd $1
     fi
+  elif [[ -z $1 ]]
+  then
+    # no arguments has a different meaning to pushd, but we still want the cd behavior
+    pushd ~
   else
     # multiple arguments overrides this and falls back to the regular cd
-    pushd $*
+    command cd $*
   fi
 }
 
