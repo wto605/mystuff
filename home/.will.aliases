@@ -169,9 +169,9 @@ alias cp='cp -a'
 # note: this is mostly for functions... I don't type pushd and expect cd to push
 if [ $has_dirstack -eq 1 ]
 then
-  # Tell pushd to shut the hell up
+  # Tell pushd to shut the hell up (but allow errors)
   pushd () {
-    command pushd $* > /dev/null 2>&1
+    command pushd $* > /dev/null
   }
 else
   # just alias it to cd

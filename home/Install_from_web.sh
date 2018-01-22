@@ -25,6 +25,7 @@ then
     wget http://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.bashrc
     wget http://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.profile
     wget http://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.ssh/authorized_keys
+  fi
 else
   wget https://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.bashrc
   wget https://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.profile
