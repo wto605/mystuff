@@ -15,10 +15,16 @@ mkdir -p $HOME/tmp_web
 cd $HOME/tmp_web
 if [ wget https://github.com/4wrxb/mystuff/raw/master/home/.will.aliases ]
 then
-  wget http://github.com/4wrxb/mystuff/raw/master/home/.will.aliases
-  wget http://github.com/4wrxb/mystuff/raw/master/home/.will.bashrc
-  wget http://github.com/4wrxb/mystuff/raw/master/home/.will.profilei
-  wget http://github.com/4wrxb/mystuff/raw/master/home/.ssh/authorized_keys
+  if [ wget http://github.com/4wrxb/mystuff/raw/master/home/.will.aliases ]
+  then
+    curl http://github.com/4wrxb/mystuff/raw/master/home/.will.aliases -o .will.aliases 
+    curl http://github.com/4wrxb/mystuff/raw/master/home/.will.bashrc -o .will.bashrc
+    curl http://github.com/4wrxb/mystuff/raw/master/home/.will.profile -o .will.profile
+    curl http://github.com/4wrxb/mystuff/raw/master/home/.ssh/authorized_keys -o authorized_keys
+  else
+    wget http://github.com/4wrxb/mystuff/raw/master/home/.will.bashrc
+    wget http://github.com/4wrxb/mystuff/raw/master/home/.will.profile
+    wget http://github.com/4wrxb/mystuff/raw/master/home/.ssh/authorized_keys
 else
   wget https://github.com/4wrxb/mystuff/raw/master/home/.will.bashrc
   wget https://github.com/4wrxb/mystuff/raw/master/home/.will.profile
@@ -29,7 +35,7 @@ chmod 600 authorized_keys
 
 if [ ! -d $HOME/.ssh ]
 then
-  mkdir -p .ssh
+  mkdir -p $HOME/.ssh
   chmod 600 $HOME/.ssh 
 fi
 
