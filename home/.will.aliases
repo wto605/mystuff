@@ -62,9 +62,9 @@ fi
 # zgrep will search uncompressed and compressed files, default to regexes
 if type 'zgrep' > /dev/null 2>&1
 then
-  alias zgrep='zgrep -E'
+  alias zgrep='zgrep --color=auto -E'
 else
-  alias zgrep='grep -E'
+  alias zgrep='grep --color=auto -E'
 fi
 
 # Use htop if available, check for a local version
@@ -99,7 +99,7 @@ alias v='vim'
 alias t='htop'
 alias g='zgrep'
 # Dir-stack is rarer
-if [[ $has_dirstack -eq 1 ]]
+if [ $has_dirstack -eq 1 ]
 then
   alias p='popd'
   alias d='dirs -v'
@@ -152,7 +152,7 @@ alias cp='cp -a'
 
 # replace pushd with cd if the chell doesn't implement directory stack
 # note: this is mostly for functions... I don't type pushd and expect cd to push
-if [[ $has_dirstack -eq 1 ]]
+if [ $has_dirstack -eq 1 ]
 then
   # Tell pushd to shut the hell up
   pushd () {
@@ -167,15 +167,15 @@ fi
 
 # smart CD to the path containing a file if file given
 cd() {
-  if [[ -z $2 ]]
+  if [ -z $2 ]
   then
-    if [[ -f $1 ]]
+    if [ -f $1 ]
     then
-      pushd $1:h
+      pushd `dirname $1`
     else
       pushd $1
     fi
-  elif [[ -z $1 ]]
+  elif [ -z $1 ]
   then
     # no arguments has a different meaning to pushd, but we still want the cd behavior
     pushd ~
@@ -197,7 +197,7 @@ cdl () {
 
 #mkcd=mkdir then CD (doesn't need smart CD since we just made the directory)
 mkcd () {
-  if [[ -z $2 ]]
+  if [ -z $2 ]
   then
     mkdir $1
     pushd cd $1
@@ -227,7 +227,7 @@ rmr () {
 dua () {
   for x in .[!.]* ..?* *
   do
-    if [[ -e $x && $x != ".snapshot/" ]]
+    if [ -e $x && $x != ".snapshot/" ]
     then
       du -sx $x
     fi
