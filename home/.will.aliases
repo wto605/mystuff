@@ -30,33 +30,33 @@ fi
 
 # Alias favorite programs that may be missing
 # vi/vim
-if type 'v\im' > /dev/null 2>&1
+if ! type 'vim' > /dev/null 2>&1
 then
   alias vim='vi'
 fi
 
-if type 'v\i' > /dev/null 2>&1
+if ! type 'vi' > /dev/null 2>&1
 then
   alias vi='vim'
 fi
 
-# pico -> vi(m) waterfall and force -w
-if ! type 'pi\co' > /dev/null 2>&1
-then
-  alias pico='vim'
-else
-  alias pico='pico -w'
-fi
-
 # nano -> pico -> vi(m) waterfall
-if ! type 'n\ano' > /dev/null 2>&1
+if ! type 'nano' > /dev/null 2>&1
 then
-  if type 'pi\co' > /dev/null 2>&1
+  if type 'pico' > /dev/null 2>&1
   then
     alias nano='pi\co -w'
   else
     alias nano='vim'
   fi
+fi
+
+# pico -> vi(m) waterfall and force -w
+if ! type 'pico' > /dev/null 2>&1
+then
+  alias pico='vim'
+else
+  alias pico='pico -w'
 fi
 
 # for scp compatibility in busybox environments
