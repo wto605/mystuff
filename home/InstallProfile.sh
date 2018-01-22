@@ -44,7 +44,7 @@ then
     echo "$result"
     echo "writing .bash_profile.new but not using it, copy yourself if needed"
   else
-    waterfall_bash_profile="0"
+    waterfall_bash_profile="1"
   fi
   c\p -a $HOME/.bash_profile $HOME/.bash_profile.new
   echo >> $HOME/.bash_profile.new
@@ -61,7 +61,7 @@ then
     echo "$result"
     echo "writing .bash_login.new but not using it, copy yourself if needed"
   else
-    waterfall_bash_login="0"
+    waterfall_bash_login="1"
   fi
   c\p -a $HOME/.bash_login $HOME/.bash_login.new
   echo >> $HOME/.bash_login.new
@@ -78,7 +78,7 @@ then
     echo "$result"
     echo "writing .bashrc.new but not using it, copy yourself if needed"
   else
-    waterfall_bashrc="0"
+    waterfall_bashrc="1"
   fi
   c\p -a $HOME/.bashrc $HOME/.bashrc.new
   echo >> $HOME/.bashrc.new
