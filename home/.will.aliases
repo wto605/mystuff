@@ -5,6 +5,18 @@
 # - Changes to improve ASH compatibility. Todo: busybox
 
 ################################################################################
+# ALIAS GUARD (the type checks break on re-run)
+################################################################################
+if [ -n "$WILL_ALIASES_SOURCED" ]
+then
+  echo "Not re-sourcing .will.aliases"
+  return 0
+  exit 0
+else
+  export WILL_ALIASES_SOURCED="1"
+fi
+
+################################################################################
 # Portability stuff                           should be before almost everything
 ################################################################################
 
@@ -18,10 +30,13 @@ fi
 
 # Alias favorite programs that may be missing
 # vi/vim
-if ! type 'vim' > /dev/null 2>&1
+if type 'v\im' > /dev/null 2>&1
 then
   alias vim='vi'
-else
+fi
+
+if type 'v\i' > /dev/null 2>&1
+then
   alias vi='vim'
 fi
 
@@ -34,7 +49,7 @@ else
 fi
 
 # nano -> pico -> vi(m) waterfall
-if ! type 'nano' > /dev/null 2>&1
+if ! type 'n\ano' > /dev/null 2>&1
 then
   if type 'pi\co' > /dev/null 2>&1
   then
@@ -60,7 +75,7 @@ fi
 # Program overrides
 ################################################################################
 # zgrep will search uncompressed and compressed files, default to regexes
-if type 'zgrep' > /dev/null 2>&1
+if type 'z\grep' > /dev/null 2>&1
 then
   alias zgrep='zgrep --color=auto -E'
 else
@@ -161,13 +176,17 @@ then
 else
   # just alias it to cd
   pushd () {
-    command cd
+    command cd $*
   }
 fi
 
 # smart CD to the path containing a file if file given
 cd() {
-  if [ -z $2 ]
+  if [ -z $1 ]
+  then
+    # no arguments has a different meaning to pushd, but we still want the cd behavior
+    pushd ~
+  elif [ -z $2 ]
   then
     if [ -f $1 ]
     then
@@ -175,10 +194,6 @@ cd() {
     else
       pushd $1
     fi
-  elif [ -z $1 ]
-  then
-    # no arguments has a different meaning to pushd, but we still want the cd behavior
-    pushd ~
   else
     # multiple arguments overrides this and falls back to the regular cd
     command cd $*
