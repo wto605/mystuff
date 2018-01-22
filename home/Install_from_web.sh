@@ -13,22 +13,22 @@ fi
 
 mkdir -p $HOME/tmp_web
 cd $HOME/tmp_web
-if [ wget https://github.com/4wrxb/mystuff/raw/master/home/.will.aliases ]
+if [ wget https://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.aliases ]
 then
-  if [ wget http://github.com/4wrxb/mystuff/raw/master/home/.will.aliases ]
+  if [ wget http://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.aliases ]
   then
-    curl http://github.com/4wrxb/mystuff/raw/master/home/.will.aliases -o .will.aliases 
-    curl http://github.com/4wrxb/mystuff/raw/master/home/.will.bashrc -o .will.bashrc
-    curl http://github.com/4wrxb/mystuff/raw/master/home/.will.profile -o .will.profile
-    curl http://github.com/4wrxb/mystuff/raw/master/home/.ssh/authorized_keys -o authorized_keys
+    curl http://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.aliases -o .will.aliases 
+    curl http://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.bashrc -o .will.bashrc
+    curl http://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.profile -o .will.profile
+    curl http://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.ssh/authorized_keys -o authorized_keys
   else
-    wget http://github.com/4wrxb/mystuff/raw/master/home/.will.bashrc
-    wget http://github.com/4wrxb/mystuff/raw/master/home/.will.profile
-    wget http://github.com/4wrxb/mystuff/raw/master/home/.ssh/authorized_keys
+    wget http://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.bashrc
+    wget http://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.profile
+    wget http://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.ssh/authorized_keys
 else
-  wget https://github.com/4wrxb/mystuff/raw/master/home/.will.bashrc
-  wget https://github.com/4wrxb/mystuff/raw/master/home/.will.profile
-  wget https://github.com/4wrxb/mystuff/raw/master/home/.ssh/authorized_keys
+  wget https://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.bashrc
+  wget https://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.will.profile
+  wget https://raw.githubusercontent.com/4wrxb/mystuff/raw/master/home/.ssh/authorized_keys
 fi
 chmod 644 .will.*
 chmod 600 authorized_keys
