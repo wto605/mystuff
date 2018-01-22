@@ -12,7 +12,14 @@ then
 fi
 
 cd "$(dirname "$0")"
-c\p -viR --no-preserve=ownership .[!.]* $HOME/
+cppath=`which cp`
+if [ `readlink -f $cppath | grep "busybox"` ]
+then
+  echo "busybox detected, doing simple cp, check ownership/perms of copied files"
+  c\p -iR .[!.]* $HOME/
+else
+  c\p -viR --no-preserve=ownership .[!.]* $HOME/
+fi
 
 if [ -f $HOME/.profile ]
 then
