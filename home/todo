@@ -1,2 +1,4 @@
 get web installer working (lots broken, not even pulling files yet)
-
+fix the (frequent) double sourcing caused by default .bashrc and .profile includes
+auto-link bin?
+beef up custom bashrc and profiles
