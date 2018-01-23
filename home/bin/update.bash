@@ -1,22 +1,29 @@
-#!/bin/bash
+#!/usr/bin/bash
 
-if type 'sudo' > /dev/null 2>&1
+if ! type 'sudo' > /dev/null 2>&1
 then
+  echo "nosudo"
   # just guess that we're already root if sudo doesn't exist
   alias sudo=''
 fi
 
-if ! type 'ap\t' > /dev/null 2>&1
+if type 'apt' > /dev/null 2>&1
 then
+  echo "apt"
   sudo apt update; sudo apt upgrade
-elif ! type 'ap\titude' > /dev/null 2>&1
+elif type 'aptitude' > /dev/null 2>&1
 then
+  echo "aptitude"
   sudo aptitude update; sudo aptitude safe-upgrade
-elif ! type 'a\pt-get' > /dev/null 2>&1
+elif type 'apt-get' > /dev/null 2>&1
 then
+  echo "apt-get"
   sudo apt-get update; sudo apt-get upgrade; sudo apt-get autoremove
-elif ! type 'yu\m' > /dev/null 2>&1
+elif type 'yum' > /dev/null 2>&1
 then
+  echo "yum"
   sudo yum upgrade; sudo yum clean
+else
+  echo "package manager not found"
 fi
 
