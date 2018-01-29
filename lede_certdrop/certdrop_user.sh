@@ -21,7 +21,7 @@ then
   exit 1
 fi
 
-echo "$USE_NAME:*:$USE_ID:$USE_ID:$USE_NAME:$USE_HOME:/bin/sh" >> /etc/passwd
+echo "$USE_NAME:*:$USE_ID:$USE_ID:$USE_NAME:$USE_HOME:/bin/ash" >> /etc/passwd
 echo "$USE_NAME:x:$USE_ID:" >> /etc/group
 echo "$USE_NAME:*:0:0:99999:7:::" >> /etc/shadow
 
@@ -32,13 +32,14 @@ then
 fi
 
 mkdir -p $USE_HOME/.ssh
-cp allowed_hosts $USE_HOME/.ssh
+cp authorized_keys $USE_HOME/.ssh
 cp certdrop_ssh.sh /root/.
 
 chmod 755 /root/certdrop_ssh.sh
+touch /root/certdrop.log
+chmod 622 /root/certdrop.log
 
 chown -R $USE_NAME:$USE_NAME $USE_HOME
-chmod 755 $USE_HOME
-chmod 700 $USE_HOME/.ssh
-chmod 600 $USE_HOME/.ssh/authorized_keys
+chmod -R 755 $USE_HOME
+chmod 644 $USE_HOME/.ssh/authorized_keys
 
