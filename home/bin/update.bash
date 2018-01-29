@@ -22,7 +22,7 @@ then
 elif type 'yum' > /dev/null 2>&1
 then
   echo "yum"
-  sudo yum upgrade; sudo yum clean
+  sudo yum upgrade
 else
   echo "package manager not found"
 fi
