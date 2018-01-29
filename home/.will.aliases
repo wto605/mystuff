@@ -7,13 +7,13 @@
 ################################################################################
 # ALIAS GUARD (the type checks break on re-run)
 ################################################################################
-if [ -n "$WILL_ALIASES_SOURCED" ]
+if type wills_supper_hacky_guard_alias > /dev/null 2>&1
 then
   echo "Not re-sourcing .will.aliases"
   return 0
   exit 0
 else
-  export WILL_ALIASES_SOURCED="1"
+  alias wills_supper_hacky_guard_alias='echo hi'
 fi
 
 ################################################################################
