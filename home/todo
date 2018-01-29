@@ -2,3 +2,11 @@ get web installer working (lots broken, not even pulling files yet)
 fix the (frequent) double sourcing caused by default .bashrc and .profile includes
 auto-link bin?
 beef up custom bashrc and profiles
+
+add git for rancher (autodetect?):
+	docker pull alpine/git
+	add this function:
+		function git () {
+		    (docker run -ti --rm -v ${HOME}:/root -v $(pwd):/git alpine/git "$@")
+		}
+
