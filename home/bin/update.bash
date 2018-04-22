@@ -10,7 +10,7 @@ fi
 if type 'apt' > /dev/null 2>&1
 then
   echo "apt"
-  sudo apt update; sudo apt upgrade
+  sudo apt update; sudo apt upgrade; sudo apt autoremove
 elif type 'aptitude' > /dev/null 2>&1
 then
   echo "aptitude"
