@@ -1,7 +1,11 @@
-get web installer working (lots broken, not even pulling files yet)
-fix the (frequent) double sourcing caused by default .bashrc and .profile includes
-auto-link bin?
+bootstrap setup
 beef up custom bashrc and profiles
+screen/tmux
+zsh
+
+work stuff:
+custom binaries in git?
+spin-off work-specific files
 
 add git for rancher (autodetect?):
 	docker pull alpine/git

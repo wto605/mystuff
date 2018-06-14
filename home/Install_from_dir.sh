@@ -1,125 +1,79 @@
 #!/bin/sh
 
-waterfall_profile="0"
-waterfall_bashrc="0"
-waterfall_bash_profile="0"
-waterfall_bash_login="0"
-
-if [ -z $HOME ]
+##############################
+# Sanity checks
+##############################
+if [ ! -z $INST_HOME ]
 then
+  homedir=$INST_HOME
+elif [ ! -z $HOME ]
+then
+  homedir=$HOME
+else
   echo "ERROR, \$HOME is not set"
-  exit 1
+  myexit 1
 fi
 
+##############################
+# Copy .ssh
+##############################
+cd "$(dirname "$0")"
+if [ -d $HOME/.ssh ]
+then
+  echo "Moving existing .ssh to .ssh.old"
+  m\v $HOME/.ssh $HOME/.ssh.old
+fi
+cppath=`which cp`
+if [ `readlink -f $cppath | grep "busybox"` ]
+then
+  echo "busybox detected, doing simple cp, check ownership/perms of copied files"
+  c\p -iR .ssh $HOME/
+else
+  c\p -viR --no-preserve=ownership .ssh $HOME/
+fi
+
+##############################
+# Copy .gitconfig but don't overwrite
+##############################
 cd "$(dirname "$0")"
 cppath=`which cp`
 if [ `readlink -f $cppath | grep "busybox"` ]
 then
   echo "busybox detected, doing simple cp, check ownership/perms of copied files"
-  c\p -iR .[!.]* $HOME/
+  c\p -i .gitconfig $HOME/.gitconfig.new
 else
-  c\p -viR --no-preserve=ownership .[!.]* $HOME/
+  c\p -vi --no-preserve=ownership .gitconfig $HOME/.gitconfig.new
 fi
 
-if [ -f $HOME/.profile ]
+if [ -f $HOME/.gitconfig ]
 then
-  if result=`g\rep ".will." $HOME/.profile`
-  then
-    echo ".will.profile may already be included:"
-    echo "$result"
-    echo "writing .profile.new but not using it, copy yourself if needed"
-  else
-    waterfall_profile="1"
-  fi
-  c\p -a $HOME/.profile $HOME/.profile.new
-  echo >> $HOME/.profile.new
-  echo 'if [ -f "$HOME/.will.profile" ]; then' >> $HOME/.profile.new
-  echo '    . "$HOME/.will.profile"' >> $HOME/.profile.new
-  echo 'fi' >> $HOME/.profile.new
+  echo ".gitconfig exists, leave .gitconfig.new for manual merge"
 else
-  echo "Creating a .profile to source .will.profile"
-  echo 'if [ -f "$HOME/.will.profile" ]; then' > $HOME/.profile
-  echo '    . "$HOME/.will.profile"' >> $HOME/.profile
-  echo 'fi' >> $HOME/.profile
+  m\v $HOME/.gitconfig.new $HOME/.gitconfig
 fi
 
-if [ -f $HOME/.bash_profile ]
+##############################
+# WSL-specific changes
+##############################
+if [ `uname`="*Microsoft" ]
 then
-  if result=`g\rep ".will." $HOME/.bash_profile`
+  echo "Making WSL speicfic changes"
+  if [ ! -z "${DISPLAY:+x}" ]
   then
-    echo ".will.bash_profile may already be included:"
-    echo "$result"
-    echo "writing .bash_profile.new but not using it, copy yourself if needed"
-  else
-    waterfall_bash_profile="1"
-  fi
-  c\p -a $HOME/.bash_profile $HOME/.bash_profile.new
-  echo >> $HOME/.bash_profile.new
-  echo 'if [ -f "$HOME/.will.bash_profile" ]; then' >> $HOME/.bash_profile.new
-  echo '    . "$HOME/.will.bash_profile"' >> $HOME/.bash_profile.new
-  echo 'fi' >> $HOME/.bash_profile.new
-fi
-
-if [ -f $HOME/.bash_login ]
-then
-  if result=`g\rep ".will." $HOME/.bash_login`
+    echo "ERROR: \$DISPLAY is set to $DISPLAY so not adding any display to bashrc."
+    echo "       If this was temporary please add \$DISPLAY to bashrc as desired."
+  elif result=`g\rep 'DISPLAY=' $HOME/.bashrc`
   then
-    echo ".will.bash_login may already be included:"
-    echo "$result"
-    echo "writing .bash_login.new but not using it, copy yourself if needed"
+    echo "WARNING: \$DISPLAY is listed in .bashrc on the following line"
+    echo $result
+    echo "         Please make any desired changes manually"
   else
-    waterfall_bash_login="1"
+    echo "#WSL needs manual display\nexport DISPLAY=localhost:0\n\n" >> $HOME/.bashrc
   fi
-  c\p -a $HOME/.bash_login $HOME/.bash_login.new
-  echo >> $HOME/.bash_login.new
-  echo 'if [ -f "$HOME/.will.bash_login" ]; then' >> $HOME/.bash_login.new
-  echo '    . "$HOME/.will.bash_login"' >> $HOME/.bash_login.new
-  echo 'fi' >> $HOME/.bash_login.new
 fi
 
-if [ -f $HOME/.bashrc ]
-then
-  if result=`g\rep ".will." $HOME/.bashrc`
-  then
-    echo ".will.bashrc may already be included:"
-    echo "$result"
-    echo "writing .bashrc.new but not using it, copy yourself if needed"
-  else
-    waterfall_bashrc="1"
-  fi
-  c\p -a $HOME/.bashrc $HOME/.bashrc.new
-  echo >> $HOME/.bashrc.new
-  echo 'if [ -f "$HOME/.will.bashrc" ]; then' >> $HOME/.bashrc.new
-  echo '    . "$HOME/.will.bashrc"' >> $HOME/.bashrc.new
-  echo 'fi' >> $HOME/.bashrc.new
-else
-  echo "Creating a .bashrc to source .will.bashrc"
-  echo 'if [ -f "$HOME/.will.bashrc" ]; then' > $HOME/.bashrc
-  echo '    . "$HOME/.will.bashrc"' >> $HOME/.bashrc
-  echo 'fi' >> $HOME/.bashrc
-fi
-
-if [ $waterfall_profile -eq 1 ]
-then
-  c\p -ai $HOME/.profile $HOME/.profile.old && mv $HOME/.profile.new $HOME/.profile
-  echo ".profile updated, PLEASE DIFF against .profile.old"
-fi
-
-if [ $waterfall_bash_profile -eq 1 ]
-then
-  c\p -ai $HOME/.bash_profile $HOME/.bash_profile.old && mv $HOME/.bash_profile.new $HOME/.bash_profile
-  echo ".bash_profile updated, PLEASE DIFF against .bash_profile.old"
-fi
-
-if [ $waterfall_bash_login -eq 1 ]
-then
-  c\p -ai $HOME/.bash_login $HOME/.bash_login.old && mv $HOME/.bash_login.new $HOME/.bash_login
-  echo ".bash_login updated, PLEASE DIFF against .bash_login.old"
-fi
-
-if [ $waterfall_bashrc -eq 1 ]
-then
-  c\p -ai $HOME/.bashrc $HOME/.bashrc.old && mv $HOME/.bashrc.new $HOME/.bashrc
-  echo ".bashrc updated, PLEASE DIFF against .bashrc.old"
-fi
+##############################
+# Now run the injector for includes
+##############################
+./Include_injector.sh
 
