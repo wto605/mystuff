@@ -7,6 +7,7 @@ then
   alias sudo=''
 fi
 
+# Package Manger Updates
 if type 'apt' > /dev/null 2>&1
 then
   echo "apt"
@@ -26,4 +27,26 @@ then
 else
   echo "package manager not found"
 fi
+
+# golang updates on debian
+if type "dpkg" > /dev/null 2>&1
+then
+  echo "on a deb-based system, checking for go"
+  if type "go" > /dev/null 2>&1
+  then
+    echo "go exists, checking for godeb"
+    if type "godeb" > /dev/null 2>&1
+    then
+      echo "godeb is installed, running it directly"
+      echo "  note: if godeb needs updated run go get -u gopkg.in/niemeyer/godeb.v1/cmd/godeb"
+      echo "  HOWEVER: you must have access to the current godeb location in your go path"
+      godeb install
+    elif [ ! -z ${GOPATH+x} ] || [ -d $HOME/go ]
+    then
+      echo "go appears to be in use, but godeb is not found, installing"
+      go get -u gopkg.in/niemeyer/godeb.v1/cmd/godeb
+      godeb install
+    fi
+  fi
+fi    
 
