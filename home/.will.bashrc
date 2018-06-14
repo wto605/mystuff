@@ -15,9 +15,12 @@ HISTFILESIZE=2000
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# import my alias file
-if [ -f "$HOME/.will.aliases" ]; then
-    . "$HOME/.will.aliases"
+# Use this for where we come from
+mystuffpath="$( readlink -f `dirname $BASH_SOURCE[0]` )"
+
+# Bash doesn't source the generic .aliases file, add it here
+if [ -f "${mystuffpath}/.will.aliases" ]; then
+  source "${mystuffpath}/.will.aliases"
 fi
 
 ################################################################################
