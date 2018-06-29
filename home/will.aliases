@@ -5,14 +5,21 @@
 # - Changes to improve ASH compatibility. Todo: busybox
 
 ################################################################################
-# ALIAS GUARD (the type checks break on re-run)
+# DEBUG & ALIAS GUARD (the type checks break on re-run)
 ################################################################################
+# If running interactively, set veriable to print debug
+case $- in
+    *i*) isInteractive=1;;
+      *) isInteractive=0;;
+esac
+
 if type wills_supper_hacky_guard_alias > /dev/null 2>&1
 then
-  echo "Not re-sourcing .will.aliases"
+  [ isInteractive ] && echo "Not re-sourcing .will.aliases"
   return 0
   exit 0
 else
+  [ isInteractive ] && echo "running .will.aliases"
   alias wills_supper_hacky_guard_alias='echo hi'
 fi
 
@@ -100,6 +107,16 @@ then
 else
   alias screen='screen -xR'
   alias sscreen='unset STY; scre\en'
+fi
+
+echo $PATH
+# assh, even if go/bin isn't in gopath
+if type 'assh' > /dev/null 2>&1
+then
+  alias ssh='assh wrapper ssh'
+elif [ -x "$HOME/go/bin/assh" ]
+then
+  alias ssh="$HOME/go/bin/assh wrapper ssh"
 fi
 
 ################################################################################

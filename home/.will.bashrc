@@ -1,5 +1,11 @@
 # ~/.will.bashrc: Cross-platform BASH related options
 
+# If running interactively, print debug
+case $- in
+    *i*) echo "running .will.bashrc";;
+      *) ;;
+esac
+
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoreboth
@@ -17,11 +23,6 @@ shopt -s checkwinsize
 
 # Use this for where we come from
 mystuffpath="$( readlink -f `dirname $BASH_SOURCE[0]` )"
-
-# Bash doesn't source the generic .aliases file, add it here
-if [ -f "${mystuffpath}/.will.aliases" ]; then
-  source "${mystuffpath}/.will.aliases"
-fi
 
 ################################################################################
 # end of configured options, need to go through this, mostly about color
