@@ -4,6 +4,7 @@ hosts:
     User: git
     UserKnownHostsFile: /dev/null
     StrictHostKeyChecking: no
+    Inherits: dial-out
 # Gateways in private file
 # CA, known hosts TODO: reduce this to DNS lookups inside DMZ? 
   freenas:
@@ -43,13 +44,15 @@ templates: # Note: host templates in private file
   z_guis:
     ForwardX11: yes
     Compression: yes                                                            # Use compression even on lan * THIS HAS TO GO FIRST * to work
+  dial-out:
+    Compression: yes
 
 defaults:
   User: will
   ControlMaster: auto
   ControlPath: ~/tmp/.ssh/cm/%C.sock
   ControlPersist: no 
-  Compression: yes
+  Compression: no
   HashKnownHosts: yes
   VerifyHostKeyDNS: ask
   VisualHostKey: yes
