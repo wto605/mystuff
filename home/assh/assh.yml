@@ -2,9 +2,9 @@ hosts:
 # Public
   "*github.com":
     User: git
+    Compression: yes
     UserKnownHostsFile: /dev/null
     StrictHostKeyChecking: no
-    Inherits: dial-out
 # Gateways in private file
 # CA, known hosts TODO: reduce this to DNS lookups inside DMZ? 
   freenas:
@@ -45,8 +45,6 @@ templates: # Note: host templates in private file
   z_guis:
     ForwardX11: yes
     Compression: yes                                                            # Use compression even on lan * THIS HAS TO GO FIRST * to work
-  dial-out:
-    Compression: yes
 
 defaults:
   User: will
