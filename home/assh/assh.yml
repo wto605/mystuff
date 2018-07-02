@@ -13,6 +13,7 @@ hosts:
       - z_guis
       - ca-hosts
   openwrt:
+    Alias: router
     Hostname: 10.0.2.1
     User: root
     Inherits:
