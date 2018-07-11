@@ -6,6 +6,31 @@ case $- in
       *) ;;
 esac
 
+# winhome link
+if [ $( uname )="*Microsoft" ]; then
+  tmp_winuser=$USER
+  tmp_newln=1
+  if [ -h "${HOME}/winhome" ]; then #Existing link
+    if [ -d "${HOME}/winhome" ]; then #Link is to valid dir
+      tmp_newln=0
+    else
+      rm "${HOME}/winhome" > /dev/null 2>&1
+    fi
+  fi
+  if [ $tmp_newln -eq 1 ] && ! [ -d "/mnt/c/Users/${tmp_winuser}" ]; then
+    tr '[A-Z]' '[a-z]' < $tmp_winuser
+    if ! [ -d "/mnt/c/Users/${tmp_winuser}" ]; then
+      tmp_winuser="$(tr '[a-z]' '[A-Z]' <<< ${tmp_winuser:0:1})${tmp_winuser:1}"
+      if ! [ -d "/mnt/c/Users/${tmp_winuser}" ]; then
+        tmp_newln=0
+      fi
+    fi
+  fi
+  if [ $tmp_newln -eq 1 ]; then
+    ln -s "/mnt/c/Users/${tmp_winuser}" "${HOME}/winhome"
+  fi
+fi
+
 # Use this for where we come from
 mystuffpath="$( readlink -f `dirname $BASH_SOURCE[0]` )"
 

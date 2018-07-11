@@ -55,7 +55,7 @@ fi
 ##############################
 # WSL-specific changes
 ##############################
-if [ `uname`="*Microsoft" ]
+if [ `uname -r`="*Microsoft" ]
 then
   echo "Making WSL speicfic changes"
   if [ ! -z "${DISPLAY:+x}" ]

@@ -47,6 +47,8 @@ then
       go get -u gopkg.in/niemeyer/godeb.v1/cmd/godeb
       godeb install
     fi
+    echo "cleaning up godeb packages"
+    rm ~/go_*.deb > /dev/null 2>&1
   fi
 fi    
 
