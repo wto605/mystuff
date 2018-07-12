@@ -54,3 +54,7 @@ if [ -f "${mystuffpath}/.will.aliases" ]; then
   source "${mystuffpath}/will.aliases"
 fi
 
+if [ -f "$HOME/workstuff/home/work_env" ]; then
+  source "$HOME/workstuff/home/work_env"
+fi
+
