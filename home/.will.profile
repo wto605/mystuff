@@ -6,8 +6,8 @@ case $- in
       *) ;;
 esac
 
-# winhome link
-if [ $( uname )="*Microsoft" ]; then
+if [ $( uname -r )="*Microsoft" ]; then
+  # winhome link
   tmp_winuser=$USER
   tmp_newln=1
   if [ -h "${HOME}/winhome" ]; then #Existing link

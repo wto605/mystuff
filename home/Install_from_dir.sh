@@ -55,22 +55,10 @@ fi
 ##############################
 # WSL-specific changes
 ##############################
-if [ `uname -r`="*Microsoft" ]
-then
+#if [ `uname -r`="*Microsoft" ]
+#then
   echo "Making WSL speicfic changes"
-  if [ ! -z "${DISPLAY:+x}" ]
-  then
-    echo "ERROR: \$DISPLAY is set to $DISPLAY so not adding any display to bashrc."
-    echo "       If this was temporary please add \$DISPLAY to bashrc as desired."
-  elif result=`g\rep 'DISPLAY=' $HOME/.bashrc`
-  then
-    echo "WARNING: \$DISPLAY is listed in .bashrc on the following line"
-    echo $result
-    echo "         Please make any desired changes manually"
-  else
-    echo "#WSL needs manual display\nexport DISPLAY=localhost:0\n\n" >> $HOME/.bashrc
-  fi
-fi
+#fi
 
 ##############################
 # Now run the injector for includes

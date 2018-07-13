@@ -6,6 +6,17 @@ case $- in
       *) ;;
 esac
 
+##############################
+# WSL-specific settings
+##############################
+if [ `uname -r`="*Microsoft" ]; then
+  echo "Linux is like if the creator of git wrote an operating system. - @SwiftOnSecurity"
+  # Display 0 for the windows x server
+  export DISPLAY=localhost:0
+  # OpenGL in windows x servers can use hardware, but it must be indirect
+  export LIBGL_ALWAYS_INDIRECT=1
+fi
+
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoreboth
