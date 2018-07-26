@@ -50,11 +50,11 @@ if [ -d "$HOME/bin" ] ; then
 fi
 
 # Source aliases last (so they have the full path etc.)
-if [ -f "${mystuffpath}/.will.aliases" ]; then
+if [ -f "${mystuffpath}/will.aliases" ]; then
   source "${mystuffpath}/will.aliases"
 fi
 
-if [ -f "$HOME/workstuff/home/work_env" ]; then
-  source "$HOME/workstuff/home/work_env"
+if [ -f "$HOME/workstuff/wsl/work_env" ]; then
+  source "$HOME/workstuff/wsl/work_env"
 fi
 
