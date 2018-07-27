@@ -1,9 +1,8 @@
 # Will's alias file for all SH-derived shells (SH, ASH, ZSH, BASH, etc.),
 # contains basic stuff for interactive and non-interactive shells
 
-# version 2018-07-26
-# - "type" is considered harmful
-# - Improvements while re-doing work setup
+# version 2018-07-27
+# - update pushd to ignore ZSH if done in ENV and have a safer silence
 
 ################################################################################
 # DEBUG & ALIAS GUARD (the command -v checks break on re-run)
@@ -26,15 +25,23 @@ else
   alias wills_supper_hacky_guard_alias='echo hi'
 fi
 
+if command -v setopt > /dev/null 2>&1; then
+  set is_zsh
+fi
+
 ################################################################################
 # Portability stuff                           should be before almost everything
 ################################################################################
 
 # keep dirstack stuff where it is
 if command -v pushd > /dev/null 2>&1; then
-  has_dirstack='1'
+  if [ $is_zsh ] && [ setopt | grep autopushd > /dev/null 2>&1 ]; then
+    dirstack="automatic"
+  else
+    dirstack="present"
+  fi
 else
-  has_dirstack='0'
+  dirstack="missing"
 fi
 
 # Alias favorite programs that may be missing
@@ -142,7 +149,7 @@ alias v='vim'
 alias t='htop'
 alias g='zgrep'
 # Dir-stack is rarer
-if [ $has_dirstack -eq 1 ]; then
+if [ ! $dirstack = "missing" ]; then
   alias p='popd'
   alias d='dirs -v'
 fi
@@ -202,12 +209,12 @@ alias cp='cp -a'
 
 # replace pushd with cd if the shell doesn't implement directory stack
 # note: this is mostly for functions... I don't use pushd and expect cd to push
-if [ $has_dirstack -eq 1 ]; then
+if [ $dirstack = "present" ]; then
   # Tell pushd to shut the hell up (but allow errors)
   pushd () {
     command pushd $* > /dev/null
   }
-else
+elif [ $dirstack = "missing" ]; then
   # just alias it to cd
   pushd () {
     command cd $*
@@ -218,7 +225,8 @@ fi
 cd() {
   if [ -z $1 ]
   then
-    # no arguments has a different meaning to pushd, but we still want the cd behavior
+    # no arguments has a different default meaning to pushd, but we still want the cd behavior
+    # TODO: check if this has any issue for ZSH (autopushd)
     pushd ~
   elif [ -z $2 ]
   then

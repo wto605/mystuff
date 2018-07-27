@@ -57,7 +57,7 @@ oldincludecheck () {
 # Path Finder & Sanity checks
 ##############################
 sanity_checks_ok=0
-if ! source Sanity_checks.sh || [ $sanity_checks_ok -ne 1 ]; then
+if ! . Sanity_checks.sh || [ $sanity_checks_ok -ne 1 ]; then
   echo "The sanity check script failed or could not be found, exiting."
   exit
 else

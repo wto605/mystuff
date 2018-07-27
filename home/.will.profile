@@ -23,7 +23,9 @@ if [ $( uname -r )="*Microsoft" ]; then
   if [ $tmp_newln -eq 1 ] && ! [ -d "/mnt/c/Users/${tmp_winuser}" ]; then
     tr '[A-Z]' '[a-z]' < $tmp_winuser
     if ! [ -d "/mnt/c/Users/${tmp_winuser}" ]; then
-      tmp_winuser="$(tr '[a-z]' '[A-Z]' <<< ${tmp_winuser:0:1})${tmp_winuser:1}"
+# FIXME: this contains bashisms
+#      tmp_winuser="$(tr '[a-z]' '[A-Z]' <<< ${tmp_winuser:0:1})${tmp_winuser:1}"
+      tmp_winuser=will
       if ! [ -d "/mnt/c/Users/${tmp_winuser}" ]; then
         tmp_newln=0
       fi
@@ -54,10 +56,10 @@ fi
 
 # Source aliases last (so they have the full path etc.)
 if [ -f "${mystuffpath}/will.aliases" ]; then
-  source "${mystuffpath}/will.aliases"
+  . "${mystuffpath}/will.aliases"
 fi
 
 if [ -f "$HOME/workstuff/wsl/work_env" ]; then
-  source "$HOME/workstuff/wsl/work_env"
+  . "$HOME/workstuff/wsl/work_env"
 fi
 
