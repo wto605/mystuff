@@ -1,25 +1,28 @@
 # Will's alias file for all SH-derived shells (SH, ASH, ZSH, BASH, etc.),
 # contains basic stuff for interactive and non-interactive shells
 
-# version 2018-01-21
-# - Changes to improve ASH compatibility. Todo: busybox
+# version 2018-07-26
+# - "type" is considered harmful
+# - Improvements while re-doing work setup
 
 ################################################################################
-# DEBUG & ALIAS GUARD (the type checks break on re-run)
+# DEBUG & ALIAS GUARD (the command -v checks break on re-run)
 ################################################################################
 # If running interactively, set veriable to print debug
-case $- in
-    *i*) isInteractive=1;;
-      *) isInteractive=0;;
-esac
+secho () {
+  case $- in
+    *i*) echo "$@";;
+      *) return 1;;
+  esac
+}
 
-if type wills_supper_hacky_guard_alias > /dev/null 2>&1
-then
-  [ isInteractive ] && echo "Not re-sourcing .will.aliases"
+
+if command -v wills_supper_hacky_guard_alias > /dev/null 2>&1; then
+  secho "Not re-sourcing will.aliases"
   return 0
   exit 0
 else
-  [ isInteractive ] && echo "running .will.aliases"
+  secho "running will.aliases"
   alias wills_supper_hacky_guard_alias='echo hi'
 fi
 
@@ -28,29 +31,32 @@ fi
 ################################################################################
 
 # keep dirstack stuff where it is
-if type pushd > /dev/null 2>&1
-then
+if command -v pushd > /dev/null 2>&1; then
   has_dirstack='1'
 else
   has_dirstack='0'
 fi
 
 # Alias favorite programs that may be missing
+# more/less
+if ! command -v 'less' > /dev/null 2>&1; then
+  alias less='more'
+else
+  alias more='less'
+fi
+
 # vi/vim
-if ! type 'vim' > /dev/null 2>&1
-then
+if ! command -v 'vim' > /dev/null 2>&1; then
   alias vim='vi'
 fi
 
-if ! type 'vi' > /dev/null 2>&1
-then
+if ! command -v 'vi' > /dev/null 2>&1; then
   alias vi='vim'
 fi
 
 # nano -> pico -> vi(m) waterfall
-if ! type 'nano' > /dev/null 2>&1
-then
-  if type 'pico' > /dev/null 2>&1
+if ! command -v 'nano' > /dev/null 2>&1; then
+  if command -v 'pico' > /dev/null 2>&1
   then
     alias nano='pi\co -w'
   else
@@ -59,63 +65,68 @@ then
 fi
 
 # pico -> vi(m) waterfall and force -w
-if ! type 'pico' > /dev/null 2>&1
-then
+if ! command -v 'pico' > /dev/null 2>&1; then
   alias pico='vim'
 else
   alias pico='pico -w'
 fi
 
 # for scp compatibility in busybox environments
-if ! type 'groups' > /dev/null 2>&1
-then
+if ! command -v 'groups' > /dev/null 2>&1; then
   alias groups='id -nG'
 fi
 
 # some du's don't have -h (human readable), but default to it if it's there
-if ! du -h /dev/console > /dev/null 2>&1
-then
+if ! du -h /dev/console > /dev/null 2>&1; then
   alias du='du -h'
 fi
+
+# UPPERCASE/lowercase conversions
+tmp_externalcase=0
+case $0 in
+  *bash)
+          if [ "$BASH_VERSINFO" -lt 4 ]; then
+            tmp_externalcase=1
+          else
+            lc () { echo "${@,,}"; }
+            uc () { echo "${@^^}"; }
+          fi
+          ;;
+   *zsh)
+          lc () { echo "${*:l}"; }
+          uc () { echo "${*:u}"; }
+          ;;
+      *) tmp_externalcase=0;;
+esac
+
+if [ $tmp_externalcase -eq 1 ]; then
+  command -v 'typeset' > /dev/null 2>&1
+  if [ $? -eq 0 ] && [ "test" = "$(typeset -l 'TEST')" ]; then
+    alias lc='typeset -l'
+    alias uc='typeset -u'
+  fi
+  # TODO: waterfall beyond this, see https://stackoverflow.com/questions/2264428/how-to-convert-a-string-to-lower-case-in-bash
+fi
+
+unset tmp_externalcase
 
 ################################################################################
 # Program overrides
 ################################################################################
 # zgrep will search uncompressed and compressed files, default to regexes
-if type 'z\grep' > /dev/null 2>&1
-then
+if command -v 'z\grep' > /dev/null 2>&1; then
   alias zgrep='zgrep --color=auto -E'
 else
   alias zgrep='grep --color=auto -E'
 fi
 
-# Use htop if available, check for a local version
-if type 'htop_latest' > /dev/null 2>&1
-then
-  alias htop='htop_latest'
-  # leave top alone when both exist
-elif ! type 'htop' > /dev/null 2>&1
-then
-  alias htop='top'
-fi
+alias screen='screen -xR'
+alias sscreen='unset STY; scre\en'
 
-# screen, check for local version
-if type 'screen_latest' > /dev/null 2>&1
-then
-  alias screen='screen_latest -xR'
-  alias sscreen='unset STY; screen_latest'
-else
-  alias screen='screen -xR'
-  alias sscreen='unset STY; scre\en'
-fi
-
-echo $PATH
 # assh, even if go/bin isn't in gopath
-if type 'assh' > /dev/null 2>&1
-then
+if command -v 'assh' > /dev/null 2>&1; then
   alias ssh='assh wrapper ssh'
-elif [ -x "$HOME/go/bin/assh" ]
-then
+elif [ -x "$HOME/go/bin/assh" ]; then
   alias ssh="$HOME/go/bin/assh wrapper ssh"
 fi
 
@@ -131,8 +142,7 @@ alias v='vim'
 alias t='htop'
 alias g='zgrep'
 # Dir-stack is rarer
-if [ $has_dirstack -eq 1 ]
-then
+if [ $has_dirstack -eq 1 ]; then
   alias p='popd'
   alias d='dirs -v'
 fi
@@ -152,21 +162,23 @@ alias l='ll'
 ################################################################################
 # misc aliases                                     depend on portability aliases
 ################################################################################
+alias nukeme='kill -9 `ps -u $USER -o pid --no-heading`'
 # tar
 alias tu='tar -cvzf'
 alias tx='tar -xvf'
 
 # force of habit
-alias what='type'
+alias type='command -V'
+alias which='command -V'
+alias what='command -V'
 alias cls='clear'
 
-if type 'gitk' > /dev/null 2>&1
-then
+if command -v 'gitk' > /dev/null 2>&1; then
   alias gci='git citool &'
 fi
 
 ################################################################################
-# file/directory aliases and functions            independent (except functions)
+# file/directory aliases                                             independent
 ################################################################################
 alias rp='readlink -f'
 alias up='cd ..'
@@ -182,10 +194,15 @@ alias mkdir='mkdir -p'
 alias md='mkdir -p'
 alias cp='cp -a'
 
-# replace pushd with cd if the chell doesn't implement directory stack
-# note: this is mostly for functions... I don't type pushd and expect cd to push
-if [ $has_dirstack -eq 1 ]
-then
+# more in the "functionland" section
+
+################################################################################
+# functionland
+################################################################################
+
+# replace pushd with cd if the shell doesn't implement directory stack
+# note: this is mostly for functions... I don't use pushd and expect cd to push
+if [ $has_dirstack -eq 1 ]; then
   # Tell pushd to shut the hell up (but allow errors)
   pushd () {
     command pushd $* > /dev/null
@@ -229,18 +246,9 @@ cdl () {
 
 #mkcd=mkdir then CD (doesn't need smart CD since we just made the directory)
 mkcd () {
-  if [ -z $2 ]
-  then
-    mkdir $1
-    pushd cd $1
-  else
-    echo "ERROR: too many arguments"
-  fi
+  mkdir "$@"
+  pushd "$@"
 }
-
-################################################################################
-# functionland
-################################################################################
 
 # smart background remove
 rmr () {
@@ -267,26 +275,22 @@ dua () {
 }
 
 # Add & to common guis
-if type 'gitk' > /dev/null 2>&1
-then
+if command -v 'gitk' > /dev/null 2>&1; then
   gitk () {
     command gitk $* &
   }
 fi
-if type 'kate' > /dev/null 2>&1
-then
+if command -v 'kate' > /dev/null 2>&1; then
   kate () {
     command kate $* &
   }
 fi
-if type 'gedit' > /dev/null 2>&1
-then
+if command -v 'gedit' > /dev/null 2>&1; then
   gedit () {
     command gedit $* &
   }
 fi
-if type 'gvim' > /dev/null 2>&1
-then
+if command -v 'gvim' > /dev/null 2>&1; then
   gvim () {
     command gvim $* &
   }
