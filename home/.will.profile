@@ -1,10 +1,13 @@
 # ~/.will.profile: Cross-platform options for login shells...
 
-# If running interactively, print debug
-case $- in
-    *i*) echo "running .will.profile";;
-      *) ;;
-esac
+secho () {
+  case $- in
+    *i*) echo "$@";;
+      *) return 1;;
+  esac
+}
+
+secho "running .will.profile"
 
 if [ $( uname -r )="*Microsoft" ]; then
   # winhome link
@@ -35,7 +38,7 @@ fi
 mystuffpath="$( readlink -f `dirname $BASH_SOURCE[0]` )"
 
 # Add the go path first
-if [ -d "$HOME/go/bin" ] ; then
+if [ -d "$HOME/go/bin" ]; then
   PATH="$HOME/go/bin":$PATH
 fi
 
@@ -45,7 +48,7 @@ if [ -d "${mystuffpath}/bin" ]; then
 fi
 
 # set PATH so it includes user's private bin if it exists
-if [ -d "$HOME/bin" ] ; then
+if [ -d "$HOME/bin" ]; then
   PATH="$HOME/bin":$PATH
 fi
 

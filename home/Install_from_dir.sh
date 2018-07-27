@@ -1,17 +1,12 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 ##############################
 # Sanity checks
 ##############################
-if [ ! -z $INST_HOME ]
-then
-  homedir=$INST_HOME
-elif [ ! -z $HOME ]
-then
-  homedir=$HOME
-else
-  echo "ERROR, \$HOME is not set"
-  myexit 1
+sanity_checks_ok=0
+if ! source Sanity_checks.sh || [ $sanity_checks_ok -ne "1" ]; then
+  echo "The sanity check script failed or could not be found, exiting."
+  exit
 fi
 
 ##############################
