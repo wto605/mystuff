@@ -1,11 +1,13 @@
+use detached working dir method for this, especially to pick up .config
+git prefs?
+
 bootstrap setup
 beef up custom bashrc and profiles
 screen/tmux
 zsh
 
 work stuff:
-custom binaries in git?
-spin-off work-specific files
+ectools stuff
 
 add git for rancher (autodetect?):
 	docker pull alpine/git
