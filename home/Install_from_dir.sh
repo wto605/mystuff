@@ -13,14 +13,12 @@ fi
 # Copy .ssh
 ##############################
 cd "$(dirname "$0")"
-if [ -d $HOME/.ssh ]
-then
+if [ -d $HOME/.ssh ]; then
   echo "Moving existing .ssh to .ssh.old"
   m\v $HOME/.ssh $HOME/.ssh.old
 fi
 cppath=`which cp`
-if [ `readlink -f $cppath | grep "busybox"` ]
-then
+if [ `readlink -f $cppath | grep "busybox"` ]; then
   echo "busybox detected, doing simple cp, check ownership/perms of copied files"
   c\p -iR .ssh $HOME/
 else
@@ -29,23 +27,24 @@ fi
 
 ##############################
 # Copy .gitconfig but don't overwrite
+# STOPPING .gitconfig use, moving to .config
 ##############################
-cd "$(dirname "$0")"
-cppath=`which cp`
-if [ `readlink -f $cppath | grep "busybox"` ]
-then
-  echo "busybox detected, doing simple cp, check ownership/perms of copied files"
-  c\p -i .gitconfig $HOME/.gitconfig.new
-else
-  c\p -vi --no-preserve=ownership .gitconfig $HOME/.gitconfig.new
-fi
-
-if [ -f $HOME/.gitconfig ]
-then
-  echo ".gitconfig exists, leave .gitconfig.new for manual merge"
-else
-  m\v $HOME/.gitconfig.new $HOME/.gitconfig
-fi
+#cd "$(dirname "$0")"
+#cppath=`which cp`
+#if [ `readlink -f $cppath | grep "busybox"` ]
+#then
+#  echo "busybox detected, doing simple cp, check ownership/perms of copied files"
+#  c\p -i .gitconfig $HOME/.gitconfig.new
+#else
+#  c\p -vi --no-preserve=ownership .gitconfig $HOME/.gitconfig.new
+#fi
+#
+#if [ -f $HOME/.gitconfig ]
+#then
+#  echo ".gitconfig exists, leave .gitconfig.new for manual merge"
+#else
+#  m\v $HOME/.gitconfig.new $HOME/.gitconfig
+#fi
 
 ##############################
 # WSL-specific changes

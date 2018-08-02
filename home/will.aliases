@@ -88,6 +88,11 @@ if ! du -h /dev/console > /dev/null 2>&1; then
   alias du='du -h'
 fi
 
+# same for df (though -h seems more common)
+if ! df -h / > /dev/null 2>&1; then
+  alias df='df -h'
+fi
+
 # UPPERCASE/lowercase conversions
 tmp_externalcase=0
 case $0 in
@@ -170,6 +175,7 @@ alias l='ll'
 # misc aliases                                     depend on portability aliases
 ################################################################################
 alias nukeme='kill -9 `ps -u $USER -o pid --no-heading`'
+alias psa='ps u $USER'
 # tar
 alias tu='tar -cvzf'
 alias tx='tar -xvf'
