@@ -1,8 +1,9 @@
 # Will's alias file for all SH-derived shells (SH, ASH, ZSH, BASH, etc.),
 # contains basic stuff for interactive and non-interactive shells
 
-# version 2018-07-27
-# - update pushd to ignore ZSH if done in ENV and have a safer silence
+# version 2018-08-02
+# - First try at allowing forced re-sourcing (for changes)
+# - Some updates to rmr (typo fix, runs in the background itself)
 
 ################################################################################
 # DEBUG & ALIAS GUARD (the command -v checks break on re-run)
@@ -15,14 +16,26 @@ secho () {
   esac
 }
 
+resourcing () {
+   [ -z "${resource:+x}" ] && return 1 || return 0
+}
+
 
 if command -v wills_supper_hacky_guard_alias > /dev/null 2>&1; then
-  secho "Not re-sourcing will.aliases"
-  return 0
-  exit 0
+  if [ "$1" = "-f" ]; then
+    secho "WARNING: resourcing will.aliases is expermental"
+    resource=1
+    # Keep count of resources for debug. TODO: OK in DASH, test on busbybox/ASH?
+    alias wills_supper_hacky_guard_alias="echo $(($( wills_supper_hacky_guard_alias )+1))"
+  else
+    secho "Not re-sourcing will.alises"
+    return 0
+    exit 0
+  fi
 else
   secho "running will.aliases"
-  alias wills_supper_hacky_guard_alias='echo hi'
+  unset resource
+  alias wills_supper_hacky_guard_alias='echo 0'
 fi
 
 if command -v setopt > /dev/null 2>&1; then
@@ -34,6 +47,10 @@ fi
 ################################################################################
 
 # keep dirstack stuff where it is
+if resourcing; then
+  # The only portable way is to unset this (it's always a function) and re-detect
+  unset -f pushd
+fi
 if command -v pushd > /dev/null 2>&1; then
   if [ $is_zsh ] && [ setopt | grep autopushd > /dev/null 2>&1 ]; then
     dirstack="automatic"
@@ -45,55 +62,59 @@ else
 fi
 
 # Alias favorite programs that may be missing
-# more/less
-if ! command -v 'less' > /dev/null 2>&1; then
-  alias less='more'
-else
-  alias more='less'
-fi
-
-# vi/vim
-if ! command -v 'vim' > /dev/null 2>&1; then
-  alias vim='vi'
-fi
-
-if ! command -v 'vi' > /dev/null 2>&1; then
-  alias vi='vim'
-fi
-
-# nano -> pico -> vi(m) waterfall
-if ! command -v 'nano' > /dev/null 2>&1; then
-  if command -v 'pico' > /dev/null 2>&1
-  then
-    alias nano='pi\co -w'
+# We don't re-do this on resource (it's been stable, simple enough to manually re-do)
+if ! resourcing; then
+  # more/less
+  if ! command -v 'less' > /dev/null 2>&1; then
+    alias less='more'
   else
-    alias nano='vim'
+    alias more='less'
+  fi
+
+  # vi/vim
+  if ! command -v 'vim' > /dev/null 2>&1; then
+    alias vim='vi'
+  fi
+
+  if ! command -v 'vi' > /dev/null 2>&1; then
+    alias vi='vim'
+  fi
+
+  # nano -> pico -> vi(m) waterfall
+  if ! command -v 'nano' > /dev/null 2>&1; then
+    if command -v 'pico' > /dev/null 2>&1
+    then
+      alias nano='pi\co -w'
+    else
+      alias nano='vim'
+    fi
+  fi
+
+  # pico -> vi(m) waterfall and force -w
+  if ! command -v 'pico' > /dev/null 2>&1; then
+    alias pico='vim'
+  else
+    alias pico='pico -w'
+  fi
+
+  # for scp compatibility in busybox environments
+  if ! command -v 'groups' > /dev/null 2>&1; then
+    alias groups='id -nG'
   fi
 fi
 
-# pico -> vi(m) waterfall and force -w
-if ! command -v 'pico' > /dev/null 2>&1; then
-  alias pico='vim'
-else
-  alias pico='pico -w'
-fi
-
-# for scp compatibility in busybox environments
-if ! command -v 'groups' > /dev/null 2>&1; then
-  alias groups='id -nG'
-fi
-
 # some du's don't have -h (human readable), but default to it if it's there
-if ! du -h /dev/console > /dev/null 2>&1; then
+if ! d\u -h /dev/console > /dev/null 2>&1; then
   alias du='du -h'
 fi
 
 # same for df (though -h seems more common)
-if ! df -h / > /dev/null 2>&1; then
+if ! d\f -h / > /dev/null 2>&1; then
   alias df='df -h'
 fi
 
 # UPPERCASE/lowercase conversions
+# TODO: confirm, this should be safe for resource
 tmp_externalcase=0
 case $0 in
   *bash)
@@ -126,7 +147,9 @@ unset tmp_externalcase
 # Program overrides
 ################################################################################
 # zgrep will search uncompressed and compressed files, default to regexes
-if command -v 'z\grep' > /dev/null 2>&1; then
+# if resourcing just unalias first
+resourcing && unalias zgrep
+if command -v 'zgrep' > /dev/null 2>&1; then
   alias zgrep='zgrep --color=auto -E'
 else
   alias zgrep='grep --color=auto -E'
@@ -136,6 +159,7 @@ alias screen='screen -xR'
 alias sscreen='unset STY; scre\en'
 
 # assh, even if go/bin isn't in gopath
+# resourcing is OK, we don't actually alias assh
 if command -v 'assh' > /dev/null 2>&1; then
   alias ssh='assh wrapper ssh'
 elif [ -x "$HOME/go/bin/assh" ]; then
@@ -186,8 +210,11 @@ alias which='command -V'
 alias what='command -V'
 alias cls='clear'
 
-if command -v 'gitk' > /dev/null 2>&1; then
-  alias gci='git citool &'
+# Also leaving this alone for resource
+if ! resourcing; then
+  if command -v 'gitk' > /dev/null 2>&1; then
+    alias gci='git citool &'
+  fi
 fi
 
 ################################################################################
@@ -268,12 +295,14 @@ mkcd () {
 rmr () {
   mkdir tombstone > /dev/null 2>&1
   local tombstone=`readlink -f tombstone`
+  if [ ! -d "$tombstone" ]; then
+    echo "ERROR: tombstone creation failed"
+    return 1
+  fi
   mv $* $tombstone/ > /dev/null 2>&1
-  for x in $*
-  do
-    rm -rf $tombstone/x
-  done
-  rmdir $tombstone > /dev/null 2>&1
+  for x in $*; do
+    rm -rf $tombstone/$x
+  done && rmdir $tombstone > /dev/null 2>&1 &
 }
 
 # dua (du all): use a loop to prevent globbing errors on the pickier shells
@@ -289,23 +318,29 @@ dua () {
 }
 
 # Add & to common guis
-if command -v 'gitk' > /dev/null 2>&1; then
-  gitk () {
-    command gitk $* &
-  }
-fi
-if command -v 'kate' > /dev/null 2>&1; then
-  kate () {
-    command kate $* &
-  }
-fi
-if command -v 'gedit' > /dev/null 2>&1; then
-  gedit () {
-    command gedit $* &
-  }
-fi
-if command -v 'gvim' > /dev/null 2>&1; then
-  gvim () {
-    command gvim $* &
-  }
+# We don't re-do this on resource (it's been stable, simple enough to manually re-do)
+if ! resourcing; then
+  if command -v 'gitk' > /dev/null 2>&1; then
+    gitk () {
+      command gitk $* &
+    }
+  fi
+
+  if command -v 'kate' > /dev/null 2>&1; then
+    kate () {
+      command kate $* &
+    }
+  fi
+
+  if command -v 'gedit' > /dev/null 2>&1; then
+    gedit () {
+      command gedit $* &
+    }
+  fi
+
+  if command -v 'gvim' > /dev/null 2>&1; then
+    gvim () {
+      command gvim $* &
+    }
+  fi
 fi

@@ -43,9 +43,9 @@ if [ "$writeprefix" = "o" ]; then
   done  
 fi
 
-export octdirs
-export octexec
 export octnxec
+export octexec
+export octdirs
 
 echo "The current directory $(readlink -f .) tree will be set to the following permissions:"
 echo "  Group: $statG"
@@ -55,20 +55,23 @@ case $readprefix in
   o) echo "  Read:  User & Other"; octnxec=404;;
   u) echo "  Read:  User Only"; octnxec=400;;
 esac
+
+octexec=$(($octnxec/4+$octnxec))
+
 case $writeprefix in
-  a) echo "  Write: ALL"; octnxec=$(($octnxec+222));;
-  g) echo "  Write: User & Group"; octnxec=$(($octnxec+220));;
-  o) echo "  Write: User & Other"; octnxec=$(($octnxec+202));;
-  u) echo "  Write: User Only"; octnxec=$(($octnxec+200));;
+  a) echo "  Write: ALL"; octwr=222;;
+  g) echo "  Write: User & Group"; octwr=220;;
+  o) echo "  Write: User & Other"; octwr=202;;
+  u) echo "  Write: User Only"; octwr=200;;
 esac
 
-octexec=$(($octnxec+111))
+octnxec=$(($octnxec+$octwr))
+octexec=$(($octexec+$octwr))
 octdirs=$(($octexec+2000))
 
-echo "  Execute will be SET for directories and text files with a shebang (#! as first two characters)."
+echo "  Execute will be SET for directories and executable files."
 echo "          It will be UNTOUCHED for others (but reported if set)."
 echo "  Links will NOT be travesed."
-echo "  The following excludes are active: $findexcludes"
 echo "(DEBUG)Bitmasks:"
 echo "  dirs - $octdirs"
 echo "  exec - $octexec"
@@ -89,18 +92,21 @@ echo "Setting mask to $octexec or $octnxec based on type or shebang" >> fixperms
 echo "================================================================================" >> fixperms.log
 echo "Setting permissions for directories" >> fixperms.log
 echo "--------------------------------------------------------------------------------" >> fixperms.log
-find . \( -name .snapshot -o -path ./.git \) -prune -o -type d -exec chmod -v $octdirs {} \; | grep -v " retained as" >> fixperms.log
+find . \( -path ./go/src -o -name .snapshot -o -name .git -o -name .ssh\* -o -name .vnc \) -prune -o -type d -exec chmod -v $octdirs {} \; | grep -v " retained as" >> fixperms.log
 echo "--------------------------------------------------------------------------------" >> fixperms.log
 echo "Setting permissions for regular files which ARE currently executable" >> fixperms.log
 echo "--------------------------------------------------------------------------------" >> fixperms.log
-find . \( -name .snapshot -o -path ./.git \) -prune -o -type f -perm /111 -exec sh -c 'file "{}" | grep -q -v "executable" && echo "File {} is executable but has no shebang"; chmod -v $octexec "{}" | grep -v " retained as" >> fixperms.log' \; | tee fixperms_checkExecBit.log
+find . \( -path ./go/src -o -name .snapshot -o -name .git -o -name .ssh\* -o -name .vnc -o -name .hsd -o -name .Xauthority \) -prune -o -type f -perm /111 -exec sh -c 'file "{}" | grep -q -v "executable" && echo "File {} is executable but has no shebang"; chmod -v $octexec "{}" | grep -v " retained as" >> fixperms.log' \; | tee fixperms_checkExecBit.log
 echo "--------------------------------------------------------------------------------" >> fixperms.log
 echo "Setting permissions for regular files which are NOT currently executable" >> fixperms.log
 echo "--------------------------------------------------------------------------------" >> fixperms.log
-find . \( -name .snapshot -o -path ./.git \) -prune -o -type f \! -perm /111 -exec sh -c 'file "{}" | grep -q "executable" && chmod -v $octexec {} || chmod -v $octnxec "{}"' \; | grep -v " retained as" >> fixperms.log
+find . \( -path ./go/src -o -name .snapshot -o -name .git -o -name .ssh\* -o -name .vnc -o -name .hsd -o -name .Xauthority \) -prune -o -type f \! -perm /111 -exec sh -c 'file "{}" | grep -q "executable" && chmod -v $octexec {} || chmod -v $octnxec "{}"' \; | grep -v " retained as" >> fixperms.log
 echo "--------------------------------------------------------------------------------" >> fixperms.log
 echo -n "Fixperms.sh done at " >> fixperms.log
 date >> fixperms.log
 echo "================================================================================" >> fixperms.log
 
+unset octnxec
+unset octexec
+unset octcirs
 
