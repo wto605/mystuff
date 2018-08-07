@@ -1,9 +1,15 @@
 # Will's alias file for all SH-derived shells (SH, ASH, ZSH, BASH, etc.),
 # contains basic stuff for interactive and non-interactive shells
 
-# version 2018-08-02
-# - First try at allowing forced re-sourcing (for changes)
-# - Some updates to rmr (typo fix, runs in the background itself)
+# version 2018-08-07
+# - Add/coalesce cleanup to the bottom of the file
+# - "Protect" alias/functions which were only valid in some shells from
+#   being expanded even when they don't support the features.
+# - Re-factor shell detection to support more differences (affects lc/uc)
+# - Add path searching aliases that keeps this easy between shells (uses findwhich.sh)
+# - Minor tweaks to resourcing for POSIX compatibility
+# - Add aliases for editing/resourcing this file
+# - Add some find aliases to report/modify permissions when dealing with group work
 
 ################################################################################
 # DEBUG & ALIAS GUARD (the command -v checks break on re-run)
@@ -20,9 +26,10 @@ resourcing () {
    [ -z "${resource:+x}" ] && return 1 || return 0
 }
 
+underscore="$_"
 
 if command -v wills_supper_hacky_guard_alias > /dev/null 2>&1; then
-  if [ "$1" = "-f" ]; then
+  if [ "x$1" = "x-f" ] || [ $will_enable_alias_resource -eq 1 ]; then
     secho "WARNING: resourcing will.aliases is expermental"
     resource=1
     # Keep count of resources for debug. TODO: OK in DASH, test on busbybox/ASH?
@@ -38,9 +45,96 @@ else
   alias wills_supper_hacky_guard_alias='echo 0'
 fi
 
-if command -v setopt > /dev/null 2>&1; then
-  set is_zsh
+# Try to find the path of the alias file (unless we're resourcing)
+if ! resourcing; then
+  if [ -f "$underscore" ]; then
+    aliasfilepath="$( readlink -f "$underscore" )"
+  elif [ -f "$HOME/mystuff/home/will.aliases" ]; then
+    aliasfilepath="$( readlink -f "$HOME/mystuff/home/will.aliases" )"
+  else
+    findresult="$( find "$HOME" -name will.aliases )"
+    if [ -f "$findresult" ]; then
+      aliasfilepath="$findresult"
+    else
+      aliasfilepath="NOTFOUND"
+    fi
+  fi
 fi
+
+################################################################################
+# Shell detection (for some variables that we use later)
+################################################################################
+# start with no result
+thisshell="notfound"
+
+# check if the $$ built-in pid works
+case $$ in
+  ''|*[!0-9]*) pidok=0;;
+            *) [ $$ -gt 0 ] && pidok=1 || pidok=0;;
+esac
+
+# if it works copy to our own variable, otherwise try sh's ps
+if [ $pidok -eq 1 ]; then
+  mypid=$$
+else
+  extpid="$( sh -c 'ps -o ppid= -p $$' 2> /dev/null )"
+  if $? && [ $extpid -gt 0 ]; then
+    mypid=$extpid
+    pidok=1;
+  fi
+fi
+
+# Now, waterfall through pid-based options to trying to grok $0
+# TODO: any more to add? most others seem to be based on validity of built-ins
+if [ $pidok -eq 1 ] && [ -f "/proc/$mypid/exe" ]; then
+  shellpath="$( readlink -f /proc/$mypid/exe )"
+  thisshell="${shellpath##*/}"
+elif [ $pidok -eq 1 ] && shellps="$( ps -o command= -p $mypid )"; then
+  # strip bash starting -, anything else?
+  thisshell="${shellps##-}"
+else
+  case "$0" in
+    busybox) thisshell="busybox";;
+      *bash) thisshell="bash";;
+       zsh*) thisshell="zsh";;
+       dash) thisshell="dash";;
+        ash) thisshell="ash";;
+         sh) thisshell="POSIX";;
+  esac
+fi
+
+# These are the shells this script has speicfics for
+is_zsh=0
+is_bash=0
+is_busybox=0
+
+# grok the resulting shell variable
+if [ "$thisshell" = "notfound" ]; then
+  if [ $pidok -eq 1 ]; then
+    secho "no shell idenified by pid $mypid or command $0"
+  else
+    secho "no shell idenified, could not find pid, command $0"
+  fi
+elif [ "${thisshell%[0-9]}" = "zsh" ]; then
+  secho "will.aliases recognizes zsh"
+  is_zsh=1
+elif [ "$thisshell" = "bash" ]; then
+  secho "will.aliases recognizes bash"
+  is_bash=1
+elif [ "$thisshell" = "busybox" ]; then
+  secho "will.aliases recognizes busybox"
+  is_busybox=1
+else
+  secho "will.aliases does not have specifics for shell $thisshell"
+fi
+
+# Localize the shell detection cleanup because most variables are here
+unset pidok
+unset mypid
+unset extpid
+unset shellpath
+unset shellps
+unset thisshell
 
 ################################################################################
 # Portability stuff                           should be before almost everything
@@ -52,7 +146,7 @@ if resourcing; then
   unset -f pushd
 fi
 if command -v pushd > /dev/null 2>&1; then
-  if [ $is_zsh ] && [ setopt | grep autopushd > /dev/null 2>&1 ]; then
+  if [ $is_zsh -eq 1 ] && setopt | grep -q autopushd; then
     dirstack="automatic"
   else
     dirstack="present"
@@ -114,34 +208,43 @@ if ! d\f -h / > /dev/null 2>&1; then
 fi
 
 # UPPERCASE/lowercase conversions
+# NOTE: subsitutiosn which aren't supported need protected from shells that perform substituion on all strings.
+#       this is done by aliases, but they can't always be evaluated in the block where they are set.
 # TODO: confirm, this should be safe for resource
-tmp_externalcase=0
-case $0 in
-  *bash)
-          if [ "$BASH_VERSINFO" -lt 4 ]; then
-            tmp_externalcase=1
-          else
-            lc () { echo "${@,,}"; }
-            uc () { echo "${@^^}"; }
-          fi
-          ;;
-   *zsh)
-          lc () { echo "${*:l}"; }
-          uc () { echo "${*:u}"; }
-          ;;
-      *) tmp_externalcase=0;;
-esac
+useexternalcase=0
+if [ $is_zsh -eq 1 ]; then
+  secho "setting lc/uc for zsh"
+  alias setlc='lc () { echo "${*:l}"; }'
+  alias setuc='uc () { echo "${*:u}"; }'
+elif [ $is_bash -eq 1 ]; then
+  if [ "$BASH_VERSINFO" -lt 4 ]; then
+    secho "bash is older than 4, need external case"
+    useexternalcase=1
+  else
+    secho "setting lc/uc for bash 4+"
+    alias setlc='lc () { echo "${@,,}"; }'
+    alias setuc='uc () { echo "${@^^}"; }'
+  fi
+else
+  secho "not zsh or bash, using external case"
+  useexternalcase=1
+fi
 
-if [ $tmp_externalcase -eq 1 ]; then
-  command -v 'typeset' > /dev/null 2>&1
-  if [ $? -eq 0 ] && [ "test" = "$(typeset -l 'TEST')" ]; then
-    alias lc='typeset -l'
-    alias uc='typeset -u'
+if [ $useexternalcase -eq 1 ]; then
+  # Not all typeset commands have the -l switch
+  typesettest="$( typeset -l 'TEST' )" > /dev/null 2>&1
+  if [ $? -eq 0 ] && [ "test" = "$typesettest" ]; then
+    alias setlc='lc="typeset -l"'
+    alias setuc='uc="typeset -u"'
+  else
+    alias setlc=':'
+    alias setuc=':'
   fi
   # TODO: waterfall beyond this, see https://stackoverflow.com/questions/2264428/how-to-convert-a-string-to-lower-case-in-bash
 fi
 
-unset tmp_externalcase
+setlc
+setuc
 
 ################################################################################
 # Program overrides
@@ -196,18 +299,59 @@ alias ltr='ll -tr'
 alias l='ll'
 
 ################################################################################
+# Path searching aliases (simply cross-shell life)
+################################################################################
+# For a summary of my research on this see ../documental/commandsearch.md
+# Leave the which binary accessable (if it is a binary)
+if [ -x "$( command -v 'which' )" ]; then
+  alias whichbin="$( command -v 'which' )"
+# or try to find the binary if a builtin is hiding it
+elif command -v whichfinder.sh > /dev/null 2>&1 && tmpwhichpath="$( whichfinder.sh )"; then
+  alias whichbin="$tmpwhichpath"
+fi
+
+# Shortcut to parsable command
+alias cmd='command -v'
+
+# Use which for the pretty version a al csh.
+# TOOD: any reason to use bash's type here? seems to be same as command -V
+alias which='command -V'
+
+# Multi-result search built in to bash, but called type
+if [ $is_bash -eq 1 ]; then
+  alias setwhere='alias where="type -a"'
+else # Fake a function if there isn't some other builtin where (e.g. zsh's where does what I want)
+  if ! command -v 'where' > /dev/null 2>&1; then
+    alias setwhere='where () { toreturn=0; for x in $@; do command -V $x || toreturn=1; whichbin -a $x; done; return $toreturn; }'
+  else
+    alias setwhere=':'
+  fi
+fi
+
+setwhere
+
+################################################################################
 # misc aliases                                     depend on portability aliases
 ################################################################################
+# alias management (arguments are NOT POSIX portable)
+if ! resourcing && [ "$aliasfilepath" != "NOTFOUND" ]; then
+  alias amgr="vi '$aliasfilepath'"
+  alias aresrc="will_enable_alias_resource=1; . '$aliasfilepath'; unset env will_enable_alias_resource"
+fi
+
+# process management
 alias nukeme='kill -9 `ps -u $USER -o pid --no-heading`'
 alias psa='ps u $USER'
+
 # tar
 alias tu='tar -cvzf'
 alias tx='tar -xvf'
 
+# Quick way to add user write to all files here
+alias addwrite='find -P . \! -perm u=w \! -type l -user $USER -exec chmod u+w {} \;'
+alias notmyro='find -P . \! -perm -g=w \! -user $USER'
+
 # force of habit
-alias type='command -V'
-alias which='command -V'
-alias what='command -V'
 alias cls='clear'
 
 # Also leaving this alone for resource
@@ -344,3 +488,24 @@ if ! resourcing; then
     }
   fi
 fi
+
+################################################################################
+# cleanup (keep all non-functional unalias and unsets here except shell detect)
+################################################################################
+# These alias were used to set other alias/functions protected from nosey shells
+unalias setlc
+unalias setuc
+unalias setwhere
+
+# Misc variables in the script which must be cleaned since this is soruced
+# and local isn't POSIX.
+unset aliasfilepath
+unset dirstack
+unset findresult
+unset is_bash
+unset is_busybox
+unset is_zsh
+unset resource
+unset typesettest
+unset undescore
+unset useexternalcase
