@@ -20,7 +20,7 @@ case $statA in
 esac
 
 if [ "$readprefix" = "o" ]; then
-  while true; do
+  while :; do
     echo "The current directory is currently group UNreadable but other readable."
     echo "Would you like to fix this and make both group and other readable? [Y]es/[N]o: "
     read $yn
@@ -32,7 +32,7 @@ if [ "$readprefix" = "o" ]; then
 fi
 
 if [ "$writeprefix" = "o" ]; then
-  while true; do
+  while :; do
     echo "The current directory is currently group UNwriteable but other writeable."
     echo "Would you like to fix this and make both group and other readable? [Y]es/[N]o: "
     read $yn
@@ -76,7 +76,7 @@ echo "(DEBUG)Bitmasks:"
 echo "  dirs - $octdirs"
 echo "  exec - $octexec"
 echo "  nxec - $octnxec"
-while true; do
+while :; do
   echo "Do you wish to proceed? [Y]es/[N]o: "
   read yn
   case $yn in
