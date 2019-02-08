@@ -208,7 +208,7 @@ if ! d\f -h / > /dev/null 2>&1; then
 fi
 
 # UPPERCASE/lowercase conversions
-# NOTE: subsitutiosn which aren't supported need protected from shells that perform substituion on all strings.
+# NOTE: subsitutions which aren't supported need protected from shells that perform substituion on all strings.
 #       this is done by aliases, but they can't always be evaluated in the block where they are set.
 # TODO: confirm, this should be safe for resource
 useexternalcase=0
@@ -234,9 +234,11 @@ if [ $useexternalcase -eq 1 ]; then
   # Not all typeset commands have the -l switch
   typesettest="$( typeset -l 'TEST' )" > /dev/null 2>&1
   if [ $? -eq 0 ] && [ "test" = "$typesettest" ]; then
+    secho "setting lc/uc using typset"
     alias setlc='lc="typeset -l"'
     alias setuc='uc="typeset -u"'
   else
+    secho "NOT setting lc/uc"
     alias setlc=':'
     alias setuc=':'
   fi
@@ -255,6 +257,7 @@ resourcing && unalias zgrep
 if command -v 'zgrep' > /dev/null 2>&1; then
   alias zgrep='zgrep --color=auto -E'
 else
+  # TODO: why did I put this here? Won't grep compressed files
   alias zgrep='grep --color=auto -E'
 fi
 
@@ -313,7 +316,7 @@ fi
 # Shortcut to parsable command
 alias cmd='command -v'
 
-# Use which for the pretty version a al csh.
+# Use which for the pretty version a la csh.
 # TOOD: any reason to use bash's type here? seems to be same as command -V
 alias which='command -V'
 
@@ -341,7 +344,7 @@ fi
 
 # process management
 alias nukeme='kill -9 `ps -u $USER -o pid --no-heading`'
-alias psa='ps u $USER'
+alias psa='ps -u $USER'
 
 # tar
 alias tu='tar -cvzf'
@@ -349,6 +352,7 @@ alias tx='tar -xvf'
 
 # Quick way to add user write to all files here
 alias addwrite='find -P . \! -perm u=w \! -type l -user $USER -exec chmod u+w {} \;'
+alias notmy='find -P . \! -user $USER'
 alias notmyro='find -P . \! -perm -g=w \! -user $USER'
 
 # force of habit

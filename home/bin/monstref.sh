@@ -41,6 +41,9 @@ Optional switches:
  -t "/path/to/tmp/dir", --tmparea "/path/to/tmp/dir"
     Causes the script to ignore $TA and $TMPDIR and uses the provided path instead.
 '
+
+#TODO: details on usage with git?
+
 }
 
 # Initailize variables from environment (if applicable)
