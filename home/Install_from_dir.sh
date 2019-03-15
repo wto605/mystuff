@@ -13,9 +13,14 @@ fi
 # Copy .ssh
 ##############################
 cd "$(dirname "$0")"
+# Move the old .ssh out of the way. TODO: don't need to do this if the only thing there is the work key (or empty)
 if [ -d $HOME/.ssh ]; then
   echo "Moving existing .ssh to .ssh.old"
   m\v $HOME/.ssh $HOME/.ssh.old
+  # work key gits put first in the boot-strap process. Move that back.
+  if [ -f $HOME/.ssh.old/$USER.openSSH ]
+    m\v $HOME/.ssh.old/$USER.openSSH $HOME/.ssh/
+  fi
 fi
 cppath=`which cp`
 if [ `readlink -f $cppath | grep "busybox"` ]; then
@@ -58,4 +63,3 @@ fi
 # Now run the injector for includes
 ##############################
 ./Include_injector.sh
-

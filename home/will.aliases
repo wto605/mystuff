@@ -1,15 +1,9 @@
 # Will's alias file for all SH-derived shells (SH, ASH, ZSH, BASH, etc.),
 # contains basic stuff for interactive and non-interactive shells
 
-# version 2018-08-07
-# - Add/coalesce cleanup to the bottom of the file
-# - "Protect" alias/functions which were only valid in some shells from
-#   being expanded even when they don't support the features.
-# - Re-factor shell detection to support more differences (affects lc/uc)
-# - Add path searching aliases that keeps this easy between shells (uses findwhich.sh)
-# - Minor tweaks to resourcing for POSIX compatibility
-# - Add aliases for editing/resourcing this file
-# - Add some find aliases to report/modify permissions when dealing with group work
+# version 2019-03-15
+# - Add some directory aliases for WSL.
+# - Previously added typo fixes, more debug output for lc/uc waterfall, 'notmy' find from CSH, and fix for 'psa'
 
 ################################################################################
 # DEBUG & ALIAS GUARD (the command -v checks break on re-run)
@@ -62,7 +56,7 @@ if ! resourcing; then
 fi
 
 ################################################################################
-# Shell detection (for some variables that we use later)
+# Shell/WSL detection (for some variables that we use later)
 ################################################################################
 # start with no result
 thisshell="notfound"
@@ -126,6 +120,13 @@ elif [ "$thisshell" = "busybox" ]; then
   is_busybox=1
 else
   secho "will.aliases does not have specifics for shell $thisshell"
+fi
+
+is_wsl=0
+
+# WSL detection is easiest through uname
+if [ `uname -r`="*Microsoft" ]; then
+  is_wsl=1
 fi
 
 # Localize the shell detection cleanup because most variables are here
@@ -199,8 +200,15 @@ fi
 
 # some du's don't have -h (human readable), but default to it if it's there
 if ! d\u -h /dev/console > /dev/null 2>&1; then
-  alias du='du -h'
+  # more don't have --exclude, but use it for snapshot if we can
+  if ! d\u --exclude=.snapshot /dev/console > /dev/null 2>&1; then
+    alias du='du -h --exclude=.snapshot'
+  else
+    alias du='du -h'
+  fi
 fi
+
+
 
 # same for df (though -h seems more common)
 if ! d\f -h / > /dev/null 2>&1; then
@@ -292,7 +300,9 @@ fi
 ################################################################################
 # ls commands                                  only depend on the first one here
 ################################################################################
-alias ls='ls -AFh --color=auto'
+# A is all except parent and pwd, F is to append indicators, h uses human readable sizes
+# v is "version" sort and overrides LC (gives back dotfiles first in WSL)
+alias ls='ls -AFhv --color=auto'
 alias l1='l\s -1'
 alias la='ls -a'
 alias ll='ls -l'
@@ -355,6 +365,9 @@ alias addwrite='find -P . \! -perm u=w \! -type l -user $USER -exec chmod u+w {}
 alias notmy='find -P . \! -user $USER'
 alias notmyro='find -P . \! -perm -g=w \! -user $USER'
 
+# gzip management
+alias fgunzip='find -iname \*.gz -exec gunzip {} \;'
+
 # force of habit
 alias cls='clear'
 
@@ -381,6 +394,12 @@ alias uppppp='cd ../../../../..'
 alias mkdir='mkdir -p'
 alias md='mkdir -p'
 alias cp='cp -a'
+
+# Specific directory shortcuts.
+# NOTE: workstuff is using gw* currently for nfs areas. But WSL doesn't access nfs
+[ $is_wsl -eq 1 ] && alias gw='cd ~/winhome'
+[ $is_wsl -eq 1 ] && alias ggl='cd ~/winhome/GitLab'
+[ $is_wsl -eq 1 ] && alias ggh='cd ~/winhome/GitHub'
 
 # more in the "functionland" section
 
@@ -455,6 +474,7 @@ rmr () {
 
 # dua (du all): use a loop to prevent globbing errors on the pickier shells
 # finally, we want to avoid using du on certain dirs (most notably snapshots)
+# and can't be sure the exclude alias will work
 dua () {
   for x in .[!.]* ..?* *
   do

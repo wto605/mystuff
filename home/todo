@@ -1,10 +1,22 @@
 use detached working dir method for this, especially to pick up .config
 git prefs?
 
-bootstrap setup
+bootstrap setup (WIP, see WSL_install.md in documental which includes TODO)
 beef up custom bashrc and profiles
 screen/tmux
 zsh
+godevel general script (see documental/godevel.md)
+vim
+  - colors still off?
+  - atomize insert mode on newline
+  - paste
+
+csh alias file carry-over?
+
+bash/zsh
+  - enable alt+p
+
+perl: use perlbrew for wsl install and update.bash
 
 work stuff:
 ectools stuff
@@ -15,4 +27,3 @@ add git for rancher (autodetect?):
 		function git () {
 		    (docker run -ti --rm -v ${HOME}:/root -v $(pwd):/git alpine/git "$@")
 		}
-

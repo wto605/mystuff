@@ -41,7 +41,8 @@ templates: # Note: host templates in private file
   z_routers:                                                                    # This will be INTERNAL ONLY
     Compression: no
     User: test
-    Ciphers: arcfour,blowfish-cbc,aes128-ctr                                    # Try allowing insecure ciphers because router HW doesn't have AES
+    #Ciphers: arcfour,blowfish-cbc,aes128-ctr                                    # Try allowing insecure ciphers because router HW doesn't have AES
+    Ciphers: aes128-ctr                                                         # openssh 7.6+ doesn't support older ciphers, try just this for now
   z_guis:
     ForwardX11: yes
     Compression: yes                                                            # Use compression even on lan * THIS HAS TO GO FIRST * to work

@@ -1,4 +1,4 @@
-#SOURCE-ONLY
+#!/bin/false
 
 myexit() {
 exit $1
@@ -74,4 +74,3 @@ if [ "$(stat -f -L -c %T $homedir)" = "*nfs*" ]; then
 fi
 
 sanity_checks_ok=1
-

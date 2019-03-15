@@ -23,7 +23,8 @@ else
   echo "package manager not found"
 fi
 
-# golang updates on debian
+# golang updates on debian - godeb downloads packages to cwd, doesn't appear to support overrides
+cd /tmp
 if command -v 'dpkg' > /dev/null 2>&1; then
   echo "on a deb-based system, checking for go"
   if command -v 'go' > /dev/null 2>&1; then
@@ -39,7 +40,7 @@ if command -v 'dpkg' > /dev/null 2>&1; then
       godeb install
     fi
     echo "cleaning up godeb packages"
-    rm ~/go_*.deb > /dev/null 2>&1
+    rm /tmp/go_*.deb > /dev/null 2>&1
   fi
 fi    
 
