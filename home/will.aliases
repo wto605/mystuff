@@ -458,6 +458,14 @@ mkcd () {
   pushd "$@"
 }
 
+# grpdiff
+grpdiff () {
+  echo "< them only, > you only\n-----------------------"
+  groups $1 | tr \  \\n | tail +3 | sort > /tmp/group_compare.$$.left
+  groups | tr \  \\n | sort > /tmp/group_compare.$$.right
+  diff /tmp/group_compare.$$.left /tmp/group_compare.$$.right | grep -v '\-\-\-' | grep -v '^[0-9,acd]\+'; rm /tmp/group_compare.$$.*
+}
+
 # smart background remove
 rmr () {
   mkdir tombstone > /dev/null 2>&1
@@ -512,6 +520,12 @@ if ! resourcing; then
     }
   fi
 fi
+
+# gitignore.io
+# comma (no space) separated list of templates
+gi () {
+  curl -sLw "\n" https://www.gitignore.io/api/$@ ;
+}
 
 ################################################################################
 # cleanup (keep all non-functional unalias and unsets here except shell detect)
