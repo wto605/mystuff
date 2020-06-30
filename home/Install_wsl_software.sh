@@ -61,7 +61,8 @@ fi
 # - kdiff3
 # - meld
 # - perlbrew (gives us a build env too)
+# - python3
 # - unzip
 # - zsh
 echo "Running apt install through sudo. Enter password if prompted."
-sudo apt install tcsh git-crypt git-gui kdiff3 meld perlbrew unzip zsh
+sudo apt install tcsh git-crypt git-gui kdiff3 meld perlbrew python3 unzip zsh

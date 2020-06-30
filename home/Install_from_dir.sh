@@ -1,10 +1,10 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 ##############################
 # Sanity checks
 ##############################
 sanity_checks_ok=0
-if ! . Sanity_checks.sh || [ $sanity_checks_ok -ne "1" ]; then
+if ! . ./Sanity_checks.sh || [ $sanity_checks_ok -ne "1" ]; then
   echo "The sanity check script failed or could not be found, exiting."
   exit
 fi
@@ -18,7 +18,7 @@ if [ -d $HOME/.ssh ]; then
   echo "Moving existing .ssh to .ssh.old"
   m\v $HOME/.ssh $HOME/.ssh.old
   # work key gits put first in the boot-strap process. Move that back.
-  if [ -f $HOME/.ssh.old/$USER.openSSH ]
+  if [ -f $HOME/.ssh.old/$USER.openSSH ];then
     m\v $HOME/.ssh.old/$USER.openSSH $HOME/.ssh/
   fi
 fi
@@ -57,6 +57,7 @@ fi
 #if [ `uname -r`="*Microsoft" ]
 #then
   echo "Making WSL speicfic changes"
+  . ./Install_wsl_software.sh
 #fi
 
 ##############################
