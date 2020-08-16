@@ -21,6 +21,22 @@ if ! command -v 'go' > /dev/null 2>&1; then
   go get -u gopkg.in/niemeyer/godeb.v1/cmd/godeb
   rm /tmp/godeb*
   rm $HOME/go_*.deb
+  rm /tmp/go_*.deb
+  
+  # If gopath is already being set leave it alone
+  if [ -z "$GOPATH" ]; then
+    echo '' >> $HOME/.profile
+    echo '\nexport GOPATH="$HOME/go"\n' >> $HOME/.profile
+  fi
+fi
+
+if [ ! -d $HOME/go ]; then
+  mkdir $HOME/go
+fi
+
+# Set gopath manually so we don't need to re-source anything
+if [ -z "$GOPATH" ]; then
+  export GOPATH="$HOME/go"
 fi
 
 # set up assh through go
@@ -41,7 +57,7 @@ if ! command -v 'assh' > /dev/null 2>&1; then
 
       #TODO: prompt before setting up assh devel environment?
       #TODO: generalize the godevel process and call that?
-      cd $HOME/go/moul.io/assh
+      cd $HOME/go/src/moul.io/assh
       git remote add my-fork git@github.com:4wrxb/assh.git
       git fetch my-fork
       git branch master -u my-fork/master
@@ -55,14 +71,25 @@ if ! command -v 'assh' > /dev/null 2>&1; then
 fi
 
 # apt install
-# - tcsh
-# - git-crypt (probably already there, but harmless to repeat)
+# GENERAL:
+# - git-crypt (probably already done by bootstrap, but harmless to repeat)
 # - git-gui (bring gitk and a lot of font/X11 stuff I'll need anyway
 # - kdiff3
 # - meld
-# - perlbrew (gives us a build env too)
+# - perlbrew (gives us some build env too)
 # - python3
 # - unzip
+# - wget
 # - zsh
+# FOR OPENWRT:
+# - build-essential
+# - libncurses5-dev
+# - libncursesw5-dev
+# - python2
+# - zlib1g-dev
+# - gawk
+# - gettext
+# - libssl-dev
+# - xsltproc
 echo "Running apt install through sudo. Enter password if prompted."
-sudo apt install tcsh git-crypt git-gui kdiff3 meld perlbrew python3 unzip zsh
+sudo apt install git-crypt git-gui kdiff3 meld perlbrew python3 unzip wget zsh build-essential libncurses5-dev libncursesw5-dev python2 zlib1g-dev gawk gettext libssl-dev xsltproc

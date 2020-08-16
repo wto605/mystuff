@@ -51,6 +51,8 @@ fi
 #  m\v $HOME/.gitconfig.new $HOME/.gitconfig
 #fi
 
+# TODO: .config (link?)
+
 ##############################
 # WSL-specific changes
 ##############################
